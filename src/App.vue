@@ -209,12 +209,6 @@ export default {
 </script>
 
 <template>
-
-  <head>
-    <title>HTML Elements Reference</title>
-  </head>
-
-  <body>
     <div class="container">
       <div class="input-section">
         <form>
@@ -299,7 +293,6 @@ export default {
         </div>
       </div>
     </div>
-  </body>
 </template>
 
 <style scoped>
