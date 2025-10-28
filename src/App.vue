@@ -238,8 +238,11 @@ export default {
 
           <label for="surface">Surface de toiture collectée (m<sup>2</sup>) : </label> <br>
           <input type="number" v-model.number="surface" id="surface" placeholder="Enter surface" min="0" /> <br>
-          <div title="Taux de récupération de l'eau de toiture (dépend de la pente et de la nature du toit. Toit métallique : 0,9 ; toit en tuiles 0,8 ; Toit végétalisé : 0,4 ; terrasse gravillonnée : 0,55 ; Terrasse béton : 0,75). Le taux de récupération des pluies journalières inférieures à 2mm est fixé à zéro)">
-            <label for="ratio">Taux de collecte : </label> <br>
+          <div
+            title="Taux de récupération de l'eau de toiture (dépend de la pente et de la nature du toit. Toit métallique : 0,9 ; toit en tuiles 0,8 ; Toit végétalisé : 0,4 ; terrasse gravillonnée : 0,55 ; Terrasse béton : 0,75). Le taux de récupération des pluies journalières inférieures à 2mm est fixé à zéro)">
+            <label for="ratio">
+              Taux de collecte <img src="./assets/info.png" width="16" height="16" /> : 
+            </label> <br>
             <input type="number" v-model.number="ratio" id="ratio" placeholder="Enter ratio" min="0" max="1"
               step="0.1" />
           </div>
@@ -288,7 +291,8 @@ export default {
             </tr>
           </tbody>
         </table>
-        <i>Calcul réalisé à partir des pluies journalières (Source : Météo France, modèle SAFRAN) données issues de l’API GEOSAS)</i>
+        <i>Calcul réalisé à partir des pluies journalières (Source : Météo France, modèle SAFRAN) données issues de
+          l’API GEOSAS)</i>
       </div>
       <div class="chart-container">
         <Line :data="chart_data" :options="chart_option" />
