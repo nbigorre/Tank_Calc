@@ -209,90 +209,92 @@ export default {
 </script>
 
 <template>
-    <div class="container">
-      <div class="input-section">
-        <form>
-          <!-- First Select for Departements -->
-          <select v-model="selectedDepartement">
-            <option value="" disabled selected>Select a Departement</option>
-            <option v-for="departement in uniqueDepartments" :key="departement" :value="departement">{{ departement }}
-            </option>
-          </select>
+  <div class="container">
+    <div class="input-section">
+      <form>
+        <!-- First Select for Departements -->
+        <select v-model="selectedDepartement">
+          <option value="" disabled selected>Select a Departement</option>
+          <option v-for="departement in uniqueDepartments" :key="departement" :value="departement">{{ departement }}
+          </option>
+        </select>
 
-          <!-- Second Select for Communes based on selected Departement -->
-          <select v-model="selectedCommune" :disabled="!selectedDepartement">
-            <option value="" disabled selected>Select a Commune</option>
-            <option v-for="commune in filteredCommunes" :key="commune" :value="commune">{{ commune }}</option>
-          </select>
+        <!-- Second Select for Communes based on selected Departement -->
+        <select v-model="selectedCommune" :disabled="!selectedDepartement">
+          <option value="" disabled selected>Select a Commune</option>
+          <option v-for="commune in filteredCommunes" :key="commune" :value="commune">{{ commune }}</option>
+        </select>
 
-          <div>
-            <label> Année de debut / fin</label><br>
-            <input class="year-input" type="number" v-model.number="start_year" placeholder="Enter Start Year" />
-            <input class="year-input" type="number" v-model.number="stop_year" placeholder="Enter Stop Year" />
-          </div>
+        <div>
+          <label> Année de debut / fin</label><br>
+          <input class="year-input" type="number" v-model.number="start_year" placeholder="Enter Start Year" />
+          <input class="year-input" type="number" v-model.number="stop_year" placeholder="Enter Stop Year" />
+        </div>
 
-          <!-- Number Inputs for Volume, Surface, and ratio -->
-          <div>
-            <label for="volume">Volume cuve (m<sup>3</sup>) : </label> <br>
-            <input type="number" v-model.number="volume" id="volume" placeholder="Enter volume" min="0" /> <br>
+        <!-- Number Inputs for Volume, Surface, and ratio -->
+        <div>
+          <label for="volume">Volume cuve (m<sup>3</sup>) : </label> <br>
+          <input type="number" v-model.number="volume" id="volume" placeholder="Enter volume" min="0" /> <br>
 
-            <label for="surface">Surface de toiture collectée (m<sup>2</sup>) : </label> <br>
-            <input type="number" v-model.number="surface" id="surface" placeholder="Enter surface" min="0" /> <br>
-
+          <label for="surface">Surface de toiture collectée (m<sup>2</sup>) : </label> <br>
+          <input type="number" v-model.number="surface" id="surface" placeholder="Enter surface" min="0" /> <br>
+          <div title="Taux de récupération de l'eau de toiture (dépend de la pente et de la nature du toit. Toit métallique : 0,9 ; toit en tuiles 0,8 ; Toit végétalisé : 0,4 ; terrasse gravillonnée : 0,55 ; Terrasse béton : 0,75). Le taux de récupération des pluies journalières inférieures à 2mm est fixé à zéro)">
             <label for="ratio">Taux de collecte : </label> <br>
             <input type="number" v-model.number="ratio" id="ratio" placeholder="Enter ratio" min="0" max="1"
               step="0.1" />
-            <br>
           </div>
+          <br>
+        </div>
 
-          <!-- Monthly Inputs -->
-          <div class="monthly-inputs">
-            <h3>Besoin en eau journalier (m<sup>3</sup>) en fonction du mois</h3>
-            <div class="months-container">
-              <div v-for="(value, index) in monthlyValues" :key="index" class="month-input">
-                <label :for="'month-' + (index + 1)">
-                  {{ new Date(0, index).toLocaleString('default', { month: 'long' }) }}:
-                </label>
-                <input type="number" v-model.number="monthlyValues[index]" :id="'month-' + (index + 1)"
-                  :placeholder="'Month ' + (index + 1)" min="0" step="0.1" />
-              </div>
+        <!-- Monthly Inputs -->
+        <div class="monthly-inputs">
+          <h3>Besoin en eau journalier (m<sup>3</sup>) en fonction du mois</h3>
+          <div class="months-container">
+            <div v-for="(value, index) in monthlyValues" :key="index" class="month-input">
+              <label :for="'month-' + (index + 1)">
+                {{ new Date(0, index).toLocaleString('default', { month: 'long' }) }}:
+              </label>
+              <input type="number" v-model.number="monthlyValues[index]" :id="'month-' + (index + 1)"
+                :placeholder="'Month ' + (index + 1)" min="0" step="0.1" />
             </div>
           </div>
+        </div>
 
-          <!-- Actualiser Button -->
-          <button type="button" @click="actualiserForm" class="actualiser-btn">Actualiser</button>
-        </form>
+        <!-- Actualiser Button -->
+        <button type="button" @click="actualiserForm" class="actualiser-btn">Actualiser</button>
+      </form>
+    </div>
+
+    <div class="output-section">
+      <!-- Table with 4 columns and 20 rows -->
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Année</th>
+              <th>Nombre de jours avec la cuve vide</th>
+              <th>Volume economisé (m<sup>3</sup>)</th>
+              <th>Besoin complémentaire (m<sup>3</sup>)</th>
+              <th>Satisfaction de Besoin</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="(value, key) of table_sum" :key="rowIndex" :id="value[0]">
+              <td :id="value[0]">{{ value[0] }}</td>
+              <td :id="value[0]">{{ value[1][0] }}</td>
+              <td :id="value[0]">{{ value[1][1] }}</td>
+              <td :id="value[0]">{{ value[1][2] }}</td>
+              <td :id="value[0]">{{ value[1][3] }}</td>
+            </tr>
+          </tbody>
+        </table>
+        <i>Calcul réalisé à partir des pluies journalières (Source : Météo France, modèle SAFRAN) données issues de l’API GEOSAS)</i>
       </div>
-
-      <div class="output-section">
-        <!-- Table with 4 columns and 20 rows -->
-        <div class="table-container">
-          <table>
-            <thead>
-              <tr>
-                <th>Année</th>
-                <th>Nombre de jours avec la cuve vide</th>
-                <th>Volume economisé (m<sup>3</sup>)</th>
-                <th>Besoin complémentaire (m<sup>3</sup>)</th>
-                <th>Satisfaction de Besoin</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="(value, key) of table_sum" :key="rowIndex" :id="value[0]">
-                <td :id="value[0]">{{ value[0] }}</td>
-                <td :id="value[0]">{{ value[1][0] }}</td>
-                <td :id="value[0]">{{ value[1][1] }}</td>
-                <td :id="value[0]">{{ value[1][2] }}</td>
-                <td :id="value[0]">{{ value[1][3] }}</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-        <div class="chart-container">
-          <Line :data="chart_data" :options="chart_option" />
-        </div>
+      <div class="chart-container">
+        <Line :data="chart_data" :options="chart_option" />
       </div>
     </div>
+  </div>
 </template>
 
 <style scoped>
@@ -304,8 +306,8 @@ export default {
 
 .input-section {
   /* Takes up half of the screen */
-  width: 20%;
-  padding-right: 20px;
+  width: 19%;
+  padding: 1%;
   float: left;
   height: 100%;
   position: fixed;
