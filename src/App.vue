@@ -113,15 +113,15 @@ export default {
         let year = date.slice(0, 4);
         let month = parseInt(date.slice(5, 7), 10) - 1;
         if (i == 0) {
-          this.computed_data.volume[i] = 0;
+          this.computed_data.volume[i] = this.volume;
           this.computed_data.consumed[i] = 0;
           this.computed_data.needed[i] = 0;
         }
         else {
-          let vol_inc = this.computed_data.volume[i - 1] + ((rain < 2 ? 0 : rain) * this.surface * this.ratio / 1000);
+          let vol_inc = Math.max(0, Math.min(this.volume,this.computed_data.volume[i - 1] + ((rain < 2 ? 0 : rain) * this.surface * this.ratio / 1000)));
           this.computed_data.volume[i] = Math.max(0, Math.min(this.volume, vol_inc - this.monthlyValues[month]));
-          this.computed_data.consumed[i] = Math.min(vol_inc, this.monthlyValues[month]);
-          this.computed_data.needed[i] = Math.max(0, this.monthlyValues[month] - vol_inc);
+          this.computed_data.consumed[i] = Math.min(this.monthlyValues[month], vol_inc);
+          this.computed_data.needed[i] = Math.max(0, this.monthlyValues[month] - this.computed_data.consumed[i]);
         }
 
         this.chart_data.labels[i] = date;
@@ -157,9 +157,11 @@ export default {
       this.table_sum.set('Moyenne', mean);
 
       this.table_sum.forEach((v, k) => {
-        for (let j = 0; j < 4; j++) {
-          v[j] = parseFloat(v[j].toFixed(4));
+
+        for (let j = 0; j < 3; j++) {
+          v[j] = parseInt(v[j]);
         }
+        v[3] = parseFloat(v[3].toFixed(1))
         v[3] += '%';
       });
       this.chart_data = {
