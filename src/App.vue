@@ -158,10 +158,6 @@ function computeSubmission(event) {
 
 <style scoped>
 
-:root {
-  --ui-scale: 0.9;
-}
-
 .container {
 	display: grid;
 	grid-template-columns: 20% 80%;
