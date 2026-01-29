@@ -157,8 +157,21 @@ function computeSubmission(event) {
 </template>
 
 <style scoped>
+
+:root {
+  --ui-scale: 0.9;
+}
+
 .container {
 	display: grid;
 	grid-template-columns: 20% 80%;
 }
+
+@media (max-aspect-ratio: 4/5) {
+  .container {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto 1fr;
+  }
+}
+
 </style>

@@ -51,18 +51,23 @@ watch(selectedCommune, (newC) => {
 
 function sendValues() {
 	if (selectedLatitude === null || selectedLongitude === null) {
+		window.alert('Veuillez selectionner une commune et un département.')
 		return;
 	}
 	if (volume < 0) {
+		window.alert('Le volume n\'est pas valide. ')
 		return;
 	}
 	if (surface < 0) {
+		window.alert('La surface n\'est pas valide.')
 		return;
 	}
 	if (ratio < 0) {
+		window.alert('Le taux de récupération n\'est pas valide.')
 		return;
 	}
 	if ([...monthlyValues].filter(item => item < 0).length > 0) {
+		windows.alert('Erreur dans les valeurs journalières.')
 		return;
 	}
 	emit('submit', { lat: selectedLatitude, long: selectedLongitude, start_year, stop_year, volume, is_full, surface, ratio, monthly: monthlyValues });
@@ -154,9 +159,7 @@ function sendValues() {
 
 .months-container {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  /* 3 columns */
-  gap: 15px;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
 }
 
 .month-input {
@@ -185,6 +188,9 @@ form input {
   margin-bottom: 15px;
   padding: 10px;
   font-size: 1rem;
+  min-width: 0;
+  width: 100%;
+  box-sizing: border-box;
 }
 h3,
 label {

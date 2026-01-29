@@ -1,5 +1,5 @@
 <script setup>
-import {ref, watch} from 'vue'
+import { ref, watch } from 'vue'
 
 import {
 	Chart as ChartJS,
@@ -94,44 +94,44 @@ const pred_chart_option = {
 
 
 const props = defineProps({
-  table_data: {
-    type: Object,
-    default: () => ({ stats_year: new Map(), min: {}, max: {}, mean: {} })
-  },
-  tank_data: {
-    type: Object,
-    default: () => ({
-      labels: [],
-      datasets: [
-        {
-          label: "Volume d'eau stocké dans la cuve (m3)",
-          borderColor: "#000FAF",
-          borderWidth: 1,
-          backgroundColor: "#000FAF",
-          pointRadius: 0,
-          pointHitRadius: 10,
-          data: []
-        }
-      ]
-    })
-  },
-  prediction_data: {
-    type: Object,
-    default: () => ({
-      labels: [],
-      datasets: [
-        {
-          label: "Volume de cuve necessaire pour Satisfaire le besoin",
-          borderColor: "#000FAF",
-          borderWidth: 1,
-          backgroundColor: "#000FAF",
-          pointRadius: 0,
-          pointHitRadius: 10,
-          data: []
-        }
-      ]
-    })
-  }
+	table_data: {
+		type: Object,
+		default: () => ({ stats_year: new Map(), min: {}, max: {}, mean: {} })
+	},
+	tank_data: {
+		type: Object,
+		default: () => ({
+			labels: [],
+			datasets: [
+				{
+					label: "Volume d'eau stocké dans la cuve (m3)",
+					borderColor: "#000FAF",
+					borderWidth: 1,
+					backgroundColor: "#000FAF",
+					pointRadius: 0,
+					pointHitRadius: 10,
+					data: []
+				}
+			]
+		})
+	},
+	prediction_data: {
+		type: Object,
+		default: () => ({
+			labels: [],
+			datasets: [
+				{
+					label: "Volume de cuve necessaire pour Satisfaire le besoin",
+					borderColor: "#000FAF",
+					borderWidth: 1,
+					backgroundColor: "#000FAF",
+					pointRadius: 0,
+					pointHitRadius: 10,
+					data: []
+				}
+			]
+		})
+	}
 });
 
 
@@ -203,10 +203,13 @@ const props = defineProps({
 table {
 	width: 100%;
 	border-collapse: collapse;
+  	table-layout: fixed;
 }
 
 table th,
 table td {
+	font-size: clamp(1px, 0.9vw, 14px);
+  	padding: 6px;
 	text-align: center;
 	border: 1px solid #ddd;
 }
