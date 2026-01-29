@@ -189,6 +189,13 @@ const props = defineProps({
 	border: 1px solid #ccc;
 }
 
+@media (max-aspect-ratio: 4/5) {
+  .output-section {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto 1fr;
+  }
+}
+
 .table-container {
 	border: 1px solid #ddd;
 	padding: 10px;
@@ -208,7 +215,7 @@ table {
 
 table th,
 table td {
-	font-size: clamp(1px, 0.9vw, 14px);
+	font-size: clamp(7px, 0.9vw, 14px);
   	padding: 6px;
 	text-align: center;
 	border: 1px solid #ddd;
