@@ -7,6 +7,7 @@ let currentLatitude = null;
 let currentLongitude = null;
 
 let rainData = null;
+let computed_tank = null;
 
 const tank_data = ref({ labels: [], datasets: [{ label: 'Volume d\'eau stocké dans la cuve (m3)', borderColor: "#000FAF", borderWidth: 1, backgroundColor: "#000FAF", pointRadius: 0, pointHitRadius: 10, data: [] }] });
 const table_data = ref({ stats_year: new Map(), min: {}, max: {}, mean: {} })
@@ -26,10 +27,51 @@ function retrieveRainData(lat, long, start_year, stop_year) {
 
 	for (let i = 0; i < response.domain.axes.t.values.length; i++) {
 		let date = response.domain.axes.t.values[i].slice(0, 10);
-		let rain = response.ranges.PRELIQ_Q.values[i] + response.ranges.PRENEI_Q.values[i];
-		rainData[i] = { date, rain };
+		let preliq_q = response.ranges.PRELIQ_Q.values[i];
+		let prenei_q = response.ranges.PRENEI_Q.values[i];
+		let rain = preliq_q + prenei_q;
+		rainData[i] = { date, rain , preliq_q, prenei_q};
 	}
 	return true;
+}
+
+function export_as_csv(event) {
+	if (rainData == null || computed_tank == null || event.lat != currentLatitude || event.long != currentLongitude) {
+		computeSubmission(event);
+	}
+
+
+	let csv_data = Array(rainData.length);
+	for (let i = 0; i < rainData.length; i++) {
+		csv_data[i] = {
+			"Date":rainData[i].date,
+			"PRELIQ_Q":parseFloat(rainData[i].preliq_q.toFixed(1)),
+			"PRENEI_Q":parseFloat(rainData[i].prenei_q.toFixed(1)),
+			"Eau dans la cuve":parseFloat(computed_tank.tank[i].toFixed(2)),
+			"Eau consommée":parseFloat(computed_tank.consumed[i].toFixed(2)),
+			"Besoin complémentaire":parseFloat(computed_tank.needed[i].toFixed(2))
+		}
+	}
+	const headers = Object.keys(csv_data[0]);
+	const rows = csv_data.map(row =>
+		headers.map(field =>
+			`"${String(row[field]).replace(/"/g, '""')}"`
+		).join(",")
+	);
+
+	const csvContent = [headers.join(","), ...rows].join("\n");
+
+	const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+	const url = URL.createObjectURL(blob);
+
+	const link = document.createElement("a");
+	link.href = url;
+	link.download = `${event.departement} ${event.commune}  ${event.start_year}-${event.stop_year}.csv`;
+	document.body.appendChild(link);
+	link.click();
+	document.body.removeChild(link);
+
+	URL.revokeObjectURL(url);
 }
 
 function computeTank(rainData, surface, ratio, is_full, monthly, volume = Number.MAX_SAFE_INTEGER) {
@@ -134,7 +176,10 @@ function computeSubmission(event) {
 		currentLongitude = event.long;
 	}
 	const dates = rainData.map((item) => item.date);
-	const computed_tank = computeTank(rainData, event.surface, event.ratio, event.is_full, event.monthly, event.volume);
+	
+	//global
+	computed_tank = computeTank(rainData, event.surface, event.ratio, event.is_full, event.monthly, event.volume);
+	
 	const computed_stats = computeStatistics(dates, computed_tank.consumed, computed_tank.needed);
 	const computed_preds = computePrediction(rainData, event.surface, event.ratio, event.monthly);
 	table_data.value = computed_stats;
@@ -151,7 +196,7 @@ function computeSubmission(event) {
 
 <template>
 	<div class="container">
-		<BaseInput @submit="computeSubmission" />
+		<BaseInput @submit="computeSubmission" @export-event="export_as_csv"/>
 		<BaseOutput :tank_data="tank_data" :table_data="table_data" :prediction_data="prediction_data" />
 	</div>
 </template>

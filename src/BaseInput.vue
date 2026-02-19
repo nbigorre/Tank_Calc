@@ -4,7 +4,8 @@ import { computed, ref, watch } from 'vue';
 import data from './data.json';
 
 const emit = defineEmits({
-	submit({ lat, long, start_year, stop_year, volume, is_full, surface, ratio, monthly }) { return true; }
+	submit({ lat, long, start_year, stop_year, volume, is_full, surface, ratio, monthly }) { return true; },
+	exportEvent({ lat, long, start_year, stop_year, volume, is_full, surface, ratio, monthly, departement, commune }) { return true }
 });
 
 const selectedDepartement = ref('');
@@ -49,7 +50,7 @@ watch(selectedCommune, (newC) => {
 	selectedLongitude = null;
 });
 
-function sendValues() {
+function validateData() {
 	if (selectedLatitude === null || selectedLongitude === null) {
 		window.alert('Veuillez selectionner une commune et un département.')
 		return;
@@ -70,6 +71,15 @@ function sendValues() {
 		windows.alert('Erreur dans les valeurs journalières.')
 		return;
 	}
+}
+
+function exportData() {
+	validateData();
+	emit('exportEvent', { lat: selectedLatitude, long: selectedLongitude, start_year, stop_year, volume, is_full, surface, ratio, monthly: monthlyValues, departement: selectedDepartement.value.slice(4), commune: selectedCommune.value.slice(4) });
+}
+
+function sendValues() {
+	validateData();
 	emit('submit', { lat: selectedLatitude, long: selectedLongitude, start_year, stop_year, volume, is_full, surface, ratio, monthly: monthlyValues });
 }
 
@@ -83,7 +93,7 @@ function sendValues() {
 			<select v-model="selectedDepartement">
 				<option value="" disabled selected>Select a Departement</option>
 				<option v-for="departement in uniqueDepartments" :key="departement" :value="departement">{{ departement
-					}}
+				}}
 				</option>
 			</select>
 
@@ -103,8 +113,12 @@ function sendValues() {
 			<div>
 				<label for="volume">Volume cuve (m<sup>3</sup>) : </label> <br>
 				<input type="number" v-model.number="volume" id="volume" placeholder="Entrer le volume" min="0" /> <br>
-				<label for="is-full">Initialiser le calcul avec la cuve pleine : </label>
-				<input type="checkbox" id="is-full" v-model="is_full"> <br>
+				<label>
+					Initialiser le calcul avec la cuve pleine :
+					<input type="checkbox" v-model="is_full" />
+				</label>
+				<br>
+				<br>
 				<label for="surface">Surface de toiture collectée (m<sup>2</sup>) : </label> <br>
 				<input type="number" v-model.number="surface" id="surface" placeholder="Entrer la surface" min="0" />
 				<br>
@@ -134,6 +148,7 @@ function sendValues() {
 
 			<!-- Actualiser Button -->
 			<button type="button" @click="sendValues" class="actualiser-btn">Actualiser</button>
+			<button type="button" @click="exportData" class="Export-btn">Exporter</button>
 		</form>
 	</div>
 </template>
@@ -146,56 +161,70 @@ function sendValues() {
 }
 
 .year-input {
-  margin-bottom: 1px;
-  padding: 1px;
-  font-size: 1rem;
-  width: 40%;
+	margin-bottom: 1px;
+	padding: 1px;
+	font-size: 1rem;
+	width: 40%;
 }
 
 .monthly-inputs h3 {
-  margin-top: 20px;
-  margin-bottom: 15px;
+	margin-top: 20px;
+	margin-bottom: 15px;
+}
+
+.checkbox-row {
+	display: flex;
+	align-items: center;
+	gap: 8px;
 }
 
 .months-container {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
 }
 
 .month-input {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
 }
 
 .month-input label {
-  margin-bottom: 5px;
+	margin-bottom: 5px;
 }
 
 .month-input input {
-  width: 80px;
-  padding: 5px;
-  text-align: center;
+	width: 80px;
+	padding: 5px;
+	text-align: center;
 }
 
 form {
-  display: flex;
-  flex-direction: column;
+	display: flex;
+	flex-direction: column;
+}
+
+button {
+	padding: 15px;
 }
 
 form select,
 form input {
-  margin-bottom: 15px;
-  padding: 10px;
-  font-size: 1rem;
-  min-width: 0;
-  width: 100%;
-  box-sizing: border-box;
+	margin-bottom: 15px;
+	padding: 10px;
+	font-size: 1rem;
+	min-width: 0;
+	width: 100%;
+	box-sizing: border-box;
 }
+
+input[type="checkbox"] {
+	width: auto;
+	margin-bottom: 0;
+}
+
 h3,
 label {
-  font-weight: bold;
+	font-weight: bold;
 }
-
-
 </style>
