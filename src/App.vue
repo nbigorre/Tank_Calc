@@ -5,6 +5,8 @@ import BaseOutput from './BaseOutput.vue';
 
 let currentLatitude = null;
 let currentLongitude = null;
+let currentStartYear = null;
+let currentStopYear = null;
 
 let rainData = null;
 let computed_tank = null;
@@ -36,7 +38,9 @@ function retrieveRainData(lat, long, start_year, stop_year) {
 }
 
 function export_as_csv(event) {
-	if (rainData == null || computed_tank == null || event.lat != currentLatitude || event.long != currentLongitude) {
+	if (rainData == null || computed_tank == null || 
+		event.lat != currentLatitude || event.long != currentLongitude || 
+		event.start_year != currentStartYear || event.stop_year != currentStopYear) {
 		computeSubmission(event);
 	}
 
@@ -169,11 +173,13 @@ function computeStatistics(date, consumed, needed) {
 }
 
 function computeSubmission(event) {
-	if (event.lat != currentLatitude || event.long != currentLongitude) {
+	if (event.lat != currentLatitude || event.long != currentLongitude || event.start_year != currentStartYear || event.stop_year != currentStopYear) {
 		if (!retrieveRainData(event.lat, event.long, event.start_year, event.stop_year))
 			return;
 		currentLatitude = event.lat;
 		currentLongitude = event.long;
+		currentStopYear = event.start_year;
+		currentStopYear = event.stop_year;
 	}
 	const dates = rainData.map((item) => item.date);
 	
