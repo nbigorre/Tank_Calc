@@ -75,12 +75,20 @@ function validateData() {
 
 function exportData() {
 	validateData();
-	emit('exportEvent', { lat: selectedLatitude, long: selectedLongitude, start_year, stop_year, volume, is_full, surface, ratio, monthly: monthlyValues, departement: selectedDepartement.value.slice(4), commune: selectedCommune.value.slice(4) });
+	const daily_values = Array(12).fill(1);
+	for (let i = 0; i < 12; i++) {
+		daily_values[i] = monthlyValues[i] / [30, 27, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31][i]
+	}
+	emit('exportEvent', { lat: selectedLatitude, long: selectedLongitude, start_year, stop_year, volume, is_full, surface, ratio, monthly: daily_values, departement: selectedDepartement.value.slice(4), commune: selectedCommune.value.slice(4) });
 }
 
 function sendValues() {
 	validateData();
-	emit('submit', { lat: selectedLatitude, long: selectedLongitude, start_year, stop_year, volume, is_full, surface, ratio, monthly: monthlyValues });
+	const daily_values = Array(12).fill(1);
+	for (let i = 0; i < 12; i++) {
+		daily_values[i] = monthlyValues[i] / [30, 27, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31][i]
+	}
+	emit('submit', { lat: selectedLatitude, long: selectedLongitude, start_year, stop_year, volume, is_full, surface, ratio, monthly: daily_values });
 }
 
 
@@ -134,7 +142,7 @@ function sendValues() {
 
 			<!-- Monthly Inputs -->
 			<div class="monthly-inputs">
-				<h3>Besoin en eau journalier (m<sup>3</sup>) en fonction du mois</h3>
+				<h3>Besoin en eau mensuel (m<sup>3</sup>)</h3>
 				<div class="months-container">
 					<div v-for="(value, index) in monthlyValues" :key="index" class="month-input">
 						<label :for="'month-' + (index + 1)">
