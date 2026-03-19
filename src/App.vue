@@ -143,8 +143,8 @@ function computeStatistics(date, consumed, needed) {
 		}
 		stats_year.get(year).saved += consumed[i];
 	}
-	const min = { empty: 0, saved: 0, needed: 0, percent: 0 };
-	const max = { empty: 0, saved: 0, needed: 0, percent: 0 };
+	const min = { empty: Infinity, saved: Infinity, needed: Infinity, percent: Infinity };
+	const max = { empty: -Infinity, saved: -Infinity, needed: -Infinity, percent: -Infinity };
 	const mean = { empty: 0, saved: 0, needed: 0, percent: 0 };
 	stats_year.forEach((v) => {
 		v.percent = parseFloat((v.saved / (v.needed + v.saved) * 100).toFixed(1));
@@ -178,8 +178,8 @@ function computeSubmission(event) {
 			return;
 		currentLatitude = event.lat;
 		currentLongitude = event.long;
-		currentStopYear = event.start_year;
 		currentStopYear = event.stop_year;
+		currentStartYear = event.start_year;
 	}
 	const dates = rainData.map((item) => item.date);
 	

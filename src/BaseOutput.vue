@@ -157,7 +157,7 @@ const props = defineProps({
 						<td id="empty">{{ value[1].empty }}</td>
 						<td id="saved">{{ value[1].saved }}</td>
 						<td id="needed">{{ value[1].needed }}</td>
-						<td id="percent">{{ value[1].percent }}</td>
+						<td id="percent">{{ value[1].percent + '%'}}</td>
 					</tr>
 					<tr v-for="(value, key) of [['Minimum', table_data.min], ['Maximum', table_data.max], ['Moyenne', table_data.mean]]"
 						:key="value[0]" :id="value[0]">
@@ -165,7 +165,7 @@ const props = defineProps({
 						<td id="empty">{{ value[1].empty }}</td>
 						<td id="saved">{{ value[1].saved }}</td>
 						<td id="needed">{{ value[1].needed }}</td>
-						<td id="percent">{{ value[1].percent }}</td>
+						<td id="percent">{{ value[1].percent != null ? value[1].percent + '%' : null }}</td>
 					</tr>
 					<tr></tr>
 				</tbody>
