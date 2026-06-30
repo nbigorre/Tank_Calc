@@ -148,6 +148,7 @@ const props = defineProps({
 						<th>Nombre de jours avec la cuve vide</th>
 						<th>Volume economisé (m<sup>3</sup>)</th>
 						<th>Besoin complémentaire (m<sup>3</sup>)</th>
+						<th>Volume surversé non valorisé (m<sup>3</sup>)</th>
 						<th>Satisfaction de Besoin</th>
 					</tr>
 				</thead>
@@ -157,6 +158,7 @@ const props = defineProps({
 						<td id="empty">{{ value[1].empty }}</td>
 						<td id="saved">{{ value[1].saved }}</td>
 						<td id="needed">{{ value[1].needed }}</td>
+						<td id="wasted">{{ value[1].wasted }}</td>
 						<td id="percent">{{ value[1].percent + '%'}}</td>
 					</tr>
 					<tr v-for="(value, key) of [['Minimum', table_data.min], ['Maximum', table_data.max], ['Moyenne', table_data.mean]]"
@@ -165,6 +167,7 @@ const props = defineProps({
 						<td id="empty">{{ value[1].empty }}</td>
 						<td id="saved">{{ value[1].saved }}</td>
 						<td id="needed">{{ value[1].needed }}</td>
+						<td id="wasted">{{ value[1].wasted }}</td>
 						<td id="percent">{{ value[1].percent != null ? value[1].percent + '%' : null }}</td>
 					</tr>
 					<tr></tr>
@@ -183,7 +186,7 @@ const props = defineProps({
 <style>
 .output-section {
 	display: grid;
-	grid-template-columns: 40% 60%;
+	grid-template-columns: 45% 55%;
 
 	padding: 20px;
 	border: 1px solid #ccc;
@@ -215,7 +218,7 @@ table {
 
 table th,
 table td {
-	font-size: clamp(7px, 0.9vw, 14px);
+	font-size: clamp(6px, 0.9vw, 12px);
   	padding: 6px;
 	text-align: center;
 	border: 1px solid #ddd;

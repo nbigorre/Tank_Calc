@@ -16,7 +16,7 @@ const table_data = ref({ stats_year: new Map(), min: {}, max: {}, mean: {} })
 const prediction_data = ref({ labels: [], datasets: [{ label: 'Volume de cuve necessaire pour Satisfaire le besoin', borderColor: "#000FAF", borderWidth: 1, backgroundColor: "#000FAF", pointRadius: 0, pointHitRadius: 10, data: [] }] })
 
 function retrieveRainData(lat, long, start_year, stop_year) {
-	const url = `https://api.geosas.fr/edr/collections/safran-isba/position?coords=POINT(${long} ${lat})&datetime=${start_year}-01-01/${stop_year}-12-31&parameter-name=PRENEI_Q,PRELIQ_Q&crs=EPSG:4326&f=CoverageJSON`
+	const url = `https://api.geosas.fr/edr/collections/safran-isba/position?coords=POINT(${long} ${lat})&datetime=${start_year}-01-01/${stop_year}-12-31&parameter-name=PRENEI_Q,PRELIQ_Q,ETP_Q&crs=EPSG:4326&f=CoverageJSON`
 	const xmlHttp = new XMLHttpRequest();
 	xmlHttp.open("GET", url, false);
 	xmlHttp.send(null);
@@ -31,8 +31,9 @@ function retrieveRainData(lat, long, start_year, stop_year) {
 		let date = response.domain.axes.t.values[i].slice(0, 10);
 		let preliq_q = response.ranges.PRELIQ_Q.values[i];
 		let prenei_q = response.ranges.PRENEI_Q.values[i];
+		let etp = response.ranges.ETP_Q.values[i];
 		let rain = preliq_q + prenei_q;
-		rainData[i] = { date, rain , preliq_q, prenei_q};
+		rainData[i] = { date, rain , preliq_q, prenei_q, etp};
 	}
 	return true;
 }
@@ -51,9 +52,12 @@ function export_as_csv(event) {
 			"Date":rainData[i].date,
 			"PRELIQ_Q":parseFloat(rainData[i].preliq_q.toFixed(1)),
 			"PRENEI_Q":parseFloat(rainData[i].prenei_q.toFixed(1)),
+			"Precipitations":parseFloat(rainData[i].rain.toFixed(1)),
+			"ETP":parseFloat(rainData[i].etp.toFixed(1)),
 			"Eau dans la cuve":parseFloat(computed_tank.tank[i].toFixed(2)),
 			"Eau consommée":parseFloat(computed_tank.consumed[i].toFixed(2)),
-			"Besoin complémentaire":parseFloat(computed_tank.needed[i].toFixed(2))
+			"Besoin complémentaire":parseFloat(computed_tank.needed[i].toFixed(2)),
+			"Volume surversé non valorisé":parseFloat(computed_tank.wasted[i].toFixed(2)),
 		}
 	}
 	const headers = Object.keys(csv_data[0]);
@@ -82,17 +86,20 @@ function computeTank(rainData, surface, ratio, is_full, monthly, volume = Number
 	const tank = Array(rainData.length);
 	const consumed = Array(rainData.length);
 	const needed = Array(rainData.length);
-	[tank[0], consumed[0], needed[0]] = [(is_full ? volume : 0), 0, 0]
+	const wasted = Array(rainData.length);
+	[tank[0], consumed[0], needed[0], wasted[0]] = [(is_full ? volume : 0), 0, 0, 0]
 
 	for (let i = 1; i < rainData.length; i++) {
 		const rain = rainData[i].rain;
 		const daily_cons = monthly[parseInt(rainData[i].date.slice(5, 7), 10) - 1];
-		const volume_increased = Math.min(volume, Math.max(0, tank[i - 1] + (rain < 2 ? 0 : rain) * surface * ratio / 1000));
+		const volume_increased_unconstrained = Math.max(0, tank[i - 1] + (rain < 2 ? 0 : rain) * surface * ratio / 1000);
+		const volume_increased = Math.min(volume, volume_increased_unconstrained)
 		tank[i] = Math.max(0, volume_increased - daily_cons);
 		consumed[i] = Math.min(volume_increased, daily_cons);
 		needed[i] = Math.max(0, daily_cons - consumed[i]);
+		wasted[i] = Math.max(0, volume_increased_unconstrained - volume);
 	}
-	return { tank, consumed, needed };
+	return { tank, consumed, needed, wasted };
 }
 
 function getEfficiency(computed) {
@@ -130,44 +137,50 @@ function computePrediction(rainData, surface, ratio, monthly) {
 
 }
 
-function computeStatistics(date, consumed, needed) {
+function computeStatistics(date, consumed, needed, wasted) {
 	const stats_year = new Map();
 	for (let i = 0; i < date.length; i++) {
 		const year = date[i].slice(0, 4);
 		if (!stats_year.has(year)) {
-			stats_year.set(year, { empty: 0, saved: 0, needed: 0, percent: 0 })
+			stats_year.set(year, { empty: 0, saved: 0, needed: 0, wasted: 0, percent: 0 })
 		}
 		if (needed[i] > 0) {
 			stats_year.get(year).needed += needed[i];
 			stats_year.get(year).empty++;
 		}
 		stats_year.get(year).saved += consumed[i];
+		stats_year.get(year).wasted += wasted[i];
 	}
-	const min = { empty: Infinity, saved: Infinity, needed: Infinity, percent: Infinity };
-	const max = { empty: -Infinity, saved: -Infinity, needed: -Infinity, percent: -Infinity };
-	const mean = { empty: 0, saved: 0, needed: 0, percent: 0 };
+	const min = { empty: Infinity, saved: Infinity, needed: Infinity, wasted: Infinity, percent: Infinity };
+	const max = { empty: -Infinity, saved: -Infinity, needed: -Infinity, wasted: -Infinity, percent: -Infinity };
+	const mean = { empty: 0, saved: 0, needed: 0, wasted: 0, percent: 0 };
 	stats_year.forEach((v) => {
 		v.percent = parseFloat((v.saved / (v.needed + v.saved) * 100).toFixed(1));
 		v.empty = parseInt(v.empty);
 		v.saved = parseInt(v.saved);
 		v.needed = parseInt(v.needed);
+		v.wasted = parseInt(v.wasted)
 
 		min.empty = Math.min(min.empty, v.empty);
 		min.saved = Math.min(min.saved, v.saved);
 		min.needed = Math.min(min.needed, v.needed);
+		min.wasted = Math.min(min.wasted, v.wasted);
 		min.percent = Math.min(min.percent, v.percent);
 		max.empty = Math.max(max.empty, v.empty);
 		max.saved = Math.max(max.saved, v.saved);
 		max.needed = Math.max(max.needed, v.needed);
+		max.wasted = Math.max(max.wasted, v.wasted);
 		max.percent = Math.max(max.percent, v.percent);
 		mean.empty += v.empty;
 		mean.saved += v.saved;
 		mean.needed += v.needed;
+		mean.wasted += v.wasted;
 		mean.percent += v.percent;
 	});
 	mean.empty = parseInt(mean.empty / stats_year.size);
 	mean.saved = parseInt(mean.saved / stats_year.size);
 	mean.needed = parseInt(mean.needed / stats_year.size);
+	mean.wasted = parseInt(mean.wasted / stats_year.size);
 	mean.percent = parseFloat((mean.percent / stats_year.size).toFixed(1));
 	return { stats_year, min, max, mean };
 }
@@ -186,7 +199,7 @@ function computeSubmission(event) {
 	//global
 	computed_tank = computeTank(rainData, event.surface, event.ratio, event.is_full, event.monthly, event.volume);
 	
-	const computed_stats = computeStatistics(dates, computed_tank.consumed, computed_tank.needed);
+	const computed_stats = computeStatistics(dates, computed_tank.consumed, computed_tank.needed, computed_tank.wasted);
 	const computed_preds = computePrediction(rainData, event.surface, event.ratio, event.monthly);
 	table_data.value = computed_stats;
 	tank_data.value = {
